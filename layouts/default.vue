@@ -7,21 +7,25 @@
         >
           <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
 
-          <v-toolbar-title>Ecommers</v-toolbar-title>
+          <v-toolbar-title>MercaLocal</v-toolbar-title>
 
           <v-spacer></v-spacer>
 
           <template v-if="$vuetify.display.mdAndUp">
-            <v-btn icon="mdi-magnify" variant="text"></v-btn>
+            <!--<v-btn icon="mdi-magnify" variant="text"></v-btn>
 
-            <!--v-btn icon="mdi-filter" variant="text"></v-btn-->
+            v-btn icon="mdi-filter" variant="text"></v-btn
             <div>
               <button @click="setLocale('es')">Es</button>
               <button @click="setLocale('en')">En</button>
               <p>{{ $t('bienvenido') }}</p>
-            </div>
+            </div>-->
           </template>
-
+          <v-btn class="text-none" stacked>
+            <v-badge color="error" :content="cantidadItems">
+              <v-icon>mdi-cart-outline</v-icon>
+            </v-badge>
+          </v-btn>
           <v-btn icon="mdi-dots-vertical" variant="text"></v-btn>
         </v-app-bar>
 
@@ -42,4 +46,5 @@ import { ref, provide } from 'vue' ;
 let drawer = ref(false);
 provide('drawer', drawer)
 const { locale, setLocale } = useI18n()
+const { cantidadItems, snackbar, mensaje, colorSnack } = useCarrito()
 </script>

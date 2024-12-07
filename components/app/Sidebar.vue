@@ -7,8 +7,8 @@
         <v-list>
             <v-list-item
             prepend-avatar="https://randomuser.me/api/portraits/women/85.jpg"
-            subtitle="sandra_a88@gmailcom"
-            title="Sandra Adams"
+            :subtitle="usuario?.email"
+            :title="usuario?.first_name"
             ></v-list-item>
         </v-list>
 
@@ -33,12 +33,21 @@
 import { inject } from 'vue'
 
 let drawer = inject('drawer')
+const { logout } = useAuth()
+const usuario = ref(null)
 
-const logout = () => {
-    const token = useCookie('token')
-    token.value = null
-    sessionStorage.setItem('usuario', '')
-    navigateTo('/login')
-}
+// Cargar datos del usuario solo en el cliente
+onMounted(() => {
+  usuario.value = JSON.parse(sessionStorage.getItem('usuario'))
+})
+
+const getUserData = computed(() => {
+  if (isClient) {
+    return JSON.parse(sessionStorage.getItem('usuario'))
+  }
+  return null
+})
+
+console.log('usuario - ', usuario)
 //console.log('drawer - ', drawer)
 </script>

@@ -16,7 +16,7 @@
   
       <v-img
         height="250"
-        :src="product.imagen"
+        :src="`http://127.0.0.1:8000${product.imagen}`"
         cover
       ></v-img>
   
@@ -24,7 +24,7 @@
         <v-card-title>{{ product.nombre }}</v-card-title>
   
         <v-card-subtitle>
-          <span class="me-1">{{ product.tienda }}</span>
+          <span class="me-1">{{ product.vendedor.nombre_tienda }}</span>
   
           <v-icon
             color="error"
@@ -35,27 +35,29 @@
       </v-card-item>
   
       <v-card-text>
-        <v-row
+        <!--v-row
           align="center"
           class="mx-0"
         >
           <v-rating
             :model-value="product.calificacion"
+            :name="`rating-${product.id}`"
+            :id="`rating-${product.id}`"
             color="amber"
             density="compact"
             size="small"
             half-increments
             readonly
             :key="product.id"
-          ></v-rating>
+          ></v-rating
   
           <div class="text-grey ms-4">
-            {{ product.tienda }} ({{ product.cantresena }})
-          </div>
-        </v-row>
+             ({{ product.cantresena }})
+          </div>>
+        </v-row-->
   
-        <div class="my-4 text-subtitle-1">
-          $ {{ product.precio }}
+        <div class="text-subtitle-1">
+          {{ formatPrice(product.precio) }}
         </div>
   
       </v-card-text>
@@ -77,28 +79,57 @@
         </v-chip-group>
       </div>
   -->
+        
+          <div class="text-grey text-subtitle-1">max:20</div>
+        
+        <v-number-input id="cantidad" name="cantidad"
+            control-variant="split"
+          :max="20"
+          :min="1"
+          :model-value="product.cantidad"
+          :step="1"
+        ></v-number-input>
       <v-card-actions>
         <v-btn 
           color="deep-purple-lighten-2"
           text="Agregar"
           block
           border
-          @click="agregarCar"
+          :loading="loading"
+          @click="agregarCar(product)"
         ></v-btn>
       </v-card-actions>
     </v-card>
+    <v-snackbar 
+      v-model="snackbar" 
+      :timeout="4000"
+      :color="colorSnack"
+    >
+      <div class="text-subtitle-1 pb-2">
+        {{ mensaje }}
+      </div>  
+    </v-snackbar>
   </template>
   <script setup>
+    import { VNumberInput } from 'vuetify/labs/VNumberInput'
     const props = defineProps({
       product: Object
     })
     let selection = 1
-    let loading = false
+    let loading = ref(false)
 
-    const agregarCar = () => {
-      loading = true
-      console.log('agregar..')
-      setTimeout(() => (loading = false), 2000)
+    const { formatPrice } = useFormatPrice()
+    const { agregarAlCarrito, mensaje, colorSnack, snackbar } = useCarrito()
+
+    const agregarCar = async (producto) => {
+      loading.value = true
+      try {
+        await agregarAlCarrito(producto)
+      } catch (error) {
+        console.error('Error al agregar al carrito:', error)
+      } finally {
+        loading.value = false
+      }
     }
     /*export default {
       data: () => ({

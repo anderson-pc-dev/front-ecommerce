@@ -27,14 +27,13 @@
 
       <div class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between">
         Password
-
-        <a
+        <!--a
           class="text-caption text-decoration-none text-blue"
           href="#"
           rel="noopener noreferrer"
           target="_blank"
         >
-          Forgot login password?</a>
+          Forgot login password?</a-->
       </div>
 
       <v-text-field
@@ -77,10 +76,17 @@
       </v-card-text>
     </v-card>
   </v-form>
+  <v-snackbar v-model="snackbar" :timeout="5000"
+      color="red-darken-2"
+       >
+       <div class="text-subtitle-1 pb-2">  {{ mensajerror }} </div>
+  </v-snackbar>
 </template>
 <script setup>
 
-  let visible = false
+  let snackbar = ref(false)
+  let mensajerror = ref('')
+  let visible = ref(false)
   let form = ref({
     email : '',
     password: ''
@@ -101,25 +107,39 @@
     const { valid } = await fm.value.validate()
     if (!valid) return;
     
-    const res = await $fetch('http://127.0.0.1:8000/login', {
-      
-      method: 'POST',
-      body: {
-        ...form.value
+    const { data, status, error, refresh, clear } = await useFetch('http://127.0.0.1:8000/login', {
+      onRequest({ request, options }) {
+        // Set the request headers
+        // note that this relies on ofetch >= 1.4.0 - you may need to refresh your lockfile
+        //options.headers.set('Authorization', '...')
+        options.method = "POST"
+        options.body = {...form.value}
+      },
+      onRequestError({ request, options, error }) {
+        // Handle the request errors
+      },
+      onResponse({ request, response, options }) {
+        // Process the response data
+        //localStorage.setItem('token', response._data.token)
+        console.log('res ok ', response)
+        if(response.ok){
+          const usuario = response._data.user
+          console.log("Success:", usuario);
+          const cook = useCookie('token')
+          cook.value = response._data.token ;
+          sessionStorage.setItem('usuario', JSON.stringify(usuario))
+          navigateTo('/')
+        }
+
+      },
+      onResponseError({ request, response, options }) {
+        console.log('res error ', response)
+        mensajerror.value = response._data.detail? response._data.detail: response._data.error
+
+        snackbar.value = true
       }
     })
-    console.log('res ', res)
-    if(res.token){
-      const usuario = res.user
-      console.log("Success:", usuario);
-      const cook = useCookie('token')
-      cook.value = res.token ;
-      sessionStorage.setItem('usuario', JSON.stringify(usuario))
-      navigateTo('/')
-    }else{
-      fm.value.reset()
-      alert('error')
-    }
+
   }/**/
   
 </script>
