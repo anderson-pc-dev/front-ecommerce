@@ -1,81 +1,134 @@
 export const useCarrito = () => {
-  const token = useCookie('token')
   const { formatPrice } = useFormatPrice()
   const cantidadItems = ref(0)
   const snackbar = ref(false)
   const mensaje = ref('')
   const colorSnack = ref('success')
+  const carrito = ref({ productos: [] })
+  const totalCarrito = ref(0)
 
-  const obtenerCantidadCarrito = async () => {
-    try {
-      const response = await fetch('http://127.0.0.1:8000/carrito/listar-carrito', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Token ${token.value}`,
-        },
-        credentials: 'include',
-      })
-      // Calcular la cantidad total sumando las cantidades de cada item
-      if (!response.ok) {
-        throw new Error('Error al obtener carrito')
-      }
-      const data = await response.json()
-      console.log('response', data)
-      cantidadItems.value = data.productos.reduce((total, item) => total + item.cantidad, 0)
-      return cantidadItems.value
-    } catch (error) {
-      console.error('Error al obtener carrito:', error)
-      return 0
-    }
+  const calcularTotalCarrito = () => {
+    totalCarrito.value = carrito.value.productos.reduce((total, item) => total + item.precio * item.cantidad, 0)
+    return totalCarrito.value
   }
 
-  const agregarAlCarrito = async (producto) => {
+  const listarCarrito = () => {
+    calcularTotalCarrito()
+    carrito.value = JSON.parse(localStorage.getItem('carrito'))
+    return carrito.value
+  }
+  // Función para guardar en localStorage
+  const guardarCarrito = (data) => {
+    
+    localStorage.setItem('carrito', JSON.stringify(data))
+    carrito.value = data
+    cantidadItems.value = data.productos.reduce((total, item) => total + item.cantidad, 0)
+    calcularTotalCarrito()
+  }
+
+  const obtenerCantidadCarrito = () => {
+    
+    const localCarrito = localStorage.getItem('carrito')
+    if (localCarrito) {
+    const data = JSON.parse(localCarrito)
+    carrito.value = data
+    cantidadItems.value = data.productos.reduce((total, item) => total + item.cantidad, 0)
+    }
+    
+    return cantidadItems.value
+  }
+
+  const agregarAlCarrito = (producto) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/carrito/agregar-producto/'+producto.id, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Token ${token.value}`,
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          producto_id: producto.id,
-          cantidad: producto.cantidad,
-          sobre_escribir: true
+      // Buscar si el producto ya existe en el carrito
+      const productoExistente = carrito.value.productos.find(
+        item => item.id === producto.id
+      )
+
+      if (productoExistente) {
+        // Actualizar cantidad si ya existe
+        productoExistente.cantidad += producto.cantidad
+      } else {
+        // Agregar nuevo producto al carrito
+        carrito.value.productos.push({
+          //producto: producto,
+          //cantidad: producto.cantidad
+          ...producto
         })
-      })
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.detail || 'Error al agregar al carrito')
       }
 
-      await obtenerCantidadCarrito()
+      // Guardar en localStorage y actualizar cantidades
+      guardarCarrito(carrito.value)
       
       mensaje.value = `${producto.nombre} agregado al carrito - ${formatPrice(producto.precio * producto.cantidad)}`
       colorSnack.value = 'success'
       snackbar.value = true
-      return response
+
+      return carrito.value
 
     } catch (error) {
-      mensaje.value = error.data?.detail || 'Error al agregar al carrito'
+      mensaje.value = 'Error al agregar al carrito'
       colorSnack.value = 'red-darken-2'
       snackbar.value = true
       throw error
     }
   }
 
-  onMounted(() => {
-    if (token.value) {
-      obtenerCantidadCarrito()
+  // Función para eliminar un producto del carrito
+  const eliminarDelCarrito = (productoId) => {
+    try {
+      carrito.value.productos = carrito.value.productos.filter(
+        item => item.id !== productoId
+      )
+      guardarCarrito(carrito.value)
+      
+      mensaje.value = 'Producto eliminado del carrito'
+      colorSnack.value = 'success'
+      snackbar.value = true
+    } catch (error) {
+      mensaje.value = 'Error al eliminar del carrito'
+      colorSnack.value = 'red-darken-2'
+      snackbar.value = true
     }
+  }
+
+  // Función para actualizar la cantidad de un producto
+  const actualizarCantidad = (productoId, nuevaCantidad) => {
+    try {
+      const producto = carrito.value.productos.find(
+        item => item.id === productoId
+      )
+      if (producto) {
+        producto.cantidad = nuevaCantidad
+        guardarCarrito(carrito.value)
+        
+        mensaje.value = 'Cantidad actualizada'
+        colorSnack.value = 'success'
+        snackbar.value = true
+      }
+    } catch (error) {
+      mensaje.value = 'Error al actualizar cantidad'
+      colorSnack.value = 'red-darken-2'
+      snackbar.value = true
+    }
+  }
+
+  // Cargar datos iniciales del localStorage
+  onMounted(() => {
+    obtenerCantidadCarrito()
   })
 
   return {
     agregarAlCarrito,
+    eliminarDelCarrito,
+    actualizarCantidad,
+    listarCarrito,
     cantidadItems,
     obtenerCantidadCarrito,
     snackbar,
     mensaje,
-    colorSnack
+    colorSnack,
+    carrito, 
+    totalCarrito       
   }
 } 

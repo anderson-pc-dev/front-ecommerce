@@ -2,7 +2,7 @@
     <v-card>
       <v-layout>
         <v-app-bar
-          color="primary"
+          color="teal-darken-3"
           prominent
         >
           <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
@@ -21,8 +21,8 @@
               <p>{{ $t('bienvenido') }}</p>
             </div>-->
           </template>
-          <v-btn class="text-none" stacked>
-            <v-badge color="error" :content="cantidadItems">
+          <v-btn class="text-none" stacked @click="drawercart = !drawercart">
+            <v-badge color="error" :content="carritoStore.cantidadItems">
               <v-icon>mdi-cart-outline</v-icon>
             </v-badge>
           </v-btn>
@@ -30,7 +30,7 @@
         </v-app-bar>
 
         <AppSidebar />
-        
+        <AppCart />
         <v-main style="min-height: 100vh">
           <slot />
         </v-main>
@@ -42,9 +42,13 @@
 
 <script setup>
 //import { AppSidebar } from '#build/components';
+
 import { ref, provide } from 'vue' ;
 let drawer = ref(false);
 provide('drawer', drawer)
+let drawercart = ref(false);
+provide('drawercart', drawercart)
 const { locale, setLocale } = useI18n()
-const { cantidadItems, snackbar, mensaje, colorSnack } = useCarrito()
+const carritoStore = useCarritoStore()
+
 </script>

@@ -2,7 +2,7 @@
 <template>
     <NuxtLayout>
       <v-container
-        class="bg-surface-variant mb-6"
+        class="bg-blue-grey-lighten-5 mb-6"
       >
       <div v-if="status === 'pending'">
         Loading ...

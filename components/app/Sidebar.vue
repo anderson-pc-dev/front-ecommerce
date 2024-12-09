@@ -7,15 +7,16 @@
         <v-list>
             <v-list-item
             prepend-avatar="https://randomuser.me/api/portraits/women/85.jpg"
-            :subtitle="usuario?.email"
-            :title="usuario?.first_name"
+            :subtitle="userStore.usuario?.email"
+            :title="userStore.usuario?.first_name"
             ></v-list-item>
         </v-list>
 
         <v-divider></v-divider>
 
         <v-list density="compact" nav>
-            <NuxtLink to="/productos"><v-list-item prepend-icon="mdi-folder" title="Productos" value="myfiles"></v-list-item></NuxtLink>
+            <NuxtLink to="/productos"><v-list-item prepend-icon="mdi-folder" title="Productos" value="productos"></v-list-item></NuxtLink>
+            <NuxtLink to="/pedido"><v-list-item prepend-icon="mdi-order-bool-ascending-variant" title="Pedidos" value="pedidos"></v-list-item></NuxtLink>
             <v-list-item prepend-icon="mdi-account-multiple" title="Shared with me" value="shared"></v-list-item>
             <v-list-item prepend-icon="mdi-star" title="Starred" value="starred"></v-list-item>
         </v-list>
@@ -35,11 +36,8 @@ import { inject } from 'vue'
 let drawer = inject('drawer')
 const { logout } = useAuth()
 const usuario = ref(null)
-
+const userStore = useUserStore()
 // Cargar datos del usuario solo en el cliente
-onMounted(() => {
-  usuario.value = JSON.parse(sessionStorage.getItem('usuario'))
-})
 
 const getUserData = computed(() => {
   if (isClient) {
@@ -48,6 +46,6 @@ const getUserData = computed(() => {
   return null
 })
 
-console.log('usuario - ', usuario)
+//console.log('usuario - ', usuario)
 //console.log('drawer - ', drawer)
 </script>

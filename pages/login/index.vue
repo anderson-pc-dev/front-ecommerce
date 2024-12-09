@@ -106,6 +106,7 @@
     //const { valid } = await this.$refs.form.validate()
     const { valid } = await fm.value.validate()
     if (!valid) return;
+    const userStore = useUserStore()
     
     const { data, status, error, refresh, clear } = await useFetch('http://127.0.0.1:8000/login', {
       onRequest({ request, options }) {
@@ -127,7 +128,7 @@
           console.log("Success:", usuario);
           const cook = useCookie('token')
           cook.value = response._data.token ;
-          sessionStorage.setItem('usuario', JSON.stringify(usuario))
+          userStore.setUser(usuario)
           navigateTo('/')
         }
 
